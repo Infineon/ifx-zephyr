@@ -24,5 +24,6 @@ supported:
   - spi
   - sdhc
   - i2s
+  - rtc
   - watchdog
   - comparator

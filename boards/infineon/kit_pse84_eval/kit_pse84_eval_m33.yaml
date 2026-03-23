@@ -22,5 +22,6 @@ supported:
   - usbd
   - spi
   - i2s
+  - rtc
   - watchdog
   - comparator
