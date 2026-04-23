@@ -16,3 +16,4 @@ supported:
   - gpio
   - pinctrl
   - flash
+  - bluetooth
