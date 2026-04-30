@@ -1,0 +1,8 @@
+
+config WAVESHARE_4P3
+	bool "Waveshare 4.3in display driver"
+	default y
+	select I2C
+	depends on DT_HAS_WAVESHARE_4P3_ENABLED
+	help
+	  Enable driver for Waveshare 4.3in display
