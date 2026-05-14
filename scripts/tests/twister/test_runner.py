@@ -25,7 +25,6 @@ from twisterlib.harness import Pytest
 from twisterlib.runner import CMake, ExecutionCounter, FilterBuilder, ProjectBuilder, TwisterRunner
 from twisterlib.statuses import TwisterStatus
 
-# pylint: disable=no-name-in-module
 from . import ZEPHYR_BASE
 
 
