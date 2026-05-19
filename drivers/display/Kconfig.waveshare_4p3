@@ -1,3 +1,7 @@
+# Copyright (c) 2026 Infineon Technologies AG,
+# or an affiliate of Infineon Technologies AG.
+#
+# SPDX-License-Identifier: Apache-2.0
 
 config WAVESHARE_4P3
 	bool "Waveshare 4.3in display driver"

@@ -18,9 +18,6 @@
 
 LOG_MODULE_REGISTER(waveshare_4p3, CONFIG_DISPLAY_LOG_LEVEL);
 
-/*******************************************************************************
-* Macros
-*******************************************************************************/
 /* Waveshare 4.3-inch display panel register(s) and value(s) */
 #define DISP_WAVESHARE_4P3_ID_REG                 (0x80U)
 #define DISP_WAVESHARE_4P3_CTRL_REG               (0x85U)
@@ -116,14 +113,26 @@ static int waveshare_4p3_init(const struct device *dev)
 	}
 
 	/* send initialization commands */
-	config->write_bus(dev, DISP_WAVESHARE_4P3_CTRL_REG,
-				DISP_WAVESHARE_4P3_DISABLE_CMD);
-	config->write_bus(dev, DISP_WAVESHARE_4P3_CTRL_REG,
-				DISP_WAVESHARE_4P3_ENABLE_CMD);
-	config->write_bus(dev, DISP_WAVESHARE_4P3_POWERON_REG,
-				DISP_WAVESHARE_4P3_POWERON_CMPLT_CMD);
-	config->write_bus(dev, DISP_WAVESHARE_4P3_BRIGHTNESS_CTRL_REG,
-				data->brightness);
+	if (0 !=
+	    config->write_bus(dev, DISP_WAVESHARE_4P3_CTRL_REG, DISP_WAVESHARE_4P3_DISABLE_CMD)) {
+		LOG_ERR("Failed to write disable command to bus %s", config->bus_name(dev));
+		return -EIO;
+	}
+	if (0 !=
+	    config->write_bus(dev, DISP_WAVESHARE_4P3_CTRL_REG, DISP_WAVESHARE_4P3_ENABLE_CMD)) {
+		LOG_ERR("Failed to write enable command to bus %s", config->bus_name(dev));
+		return -EIO;
+	}
+	if (0 != config->write_bus(dev, DISP_WAVESHARE_4P3_POWERON_REG,
+				   DISP_WAVESHARE_4P3_POWERON_CMPLT_CMD)) {
+		LOG_ERR("Failed to write power on complete command to bus %s",
+			config->bus_name(dev));
+		return -EIO;
+	}
+	if (0 != config->write_bus(dev, DISP_WAVESHARE_4P3_BRIGHTNESS_CTRL_REG, data->brightness)) {
+		LOG_ERR("Failed to write brightness command to bus %s", config->bus_name(dev));
+		return -EIO;
+	}
 
 	LOG_DBG("waveshare 4p3 driver controller init succeeded");
 
