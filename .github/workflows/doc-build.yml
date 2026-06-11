@@ -27,7 +27,7 @@ jobs:
       file_check: ${{ steps.check-doc-files.outputs.any_modified }}
     steps:
     - name: checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       with:
         ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 0
@@ -92,7 +92,7 @@ jobs:
         git remote set-url origin ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}
 
     - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       with:
         ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 0
@@ -307,7 +307,7 @@ jobs:
 
     steps:
     - name: checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       with:
         path: zephyr
 
@@ -335,7 +335,7 @@ jobs:
         echo "/opt/doxygen-${DOXYGEN_VERSION}/bin" >> $GITHUB_PATH
 
     - name: Setup Zephyr project
-      uses: zephyrproject-rtos/action-zephyr-setup@700109a78599c7bb26585f2fb3d2411d65381b9d # v1.0.13
+      uses: zephyrproject-rtos/action-zephyr-setup@5ec39f5cba83346d83a836dfed1524270c660e28 # v1.0.14
       with:
         app-path: zephyr
         toolchains: 'arm-zephyr-eabi'
