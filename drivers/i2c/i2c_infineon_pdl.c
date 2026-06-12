@@ -241,14 +241,10 @@ void ifx_cat1_i2c_register_callback(const struct device *dev,
 }
 
 #if defined(CONFIG_SOC_FAMILY_INFINEON_EDGE)
-/* Packs a (peri-instance, peri-group) pair into a single uint8_t key,
- * matching the macro used in uart_infineon_pdl.c and spi_infineon_pdl.c.
- */
 #define IFX_CAT1_INSTANCE_GROUP(instance, group) (((instance) << 4) | (group))
+#define IFX_CAT1_INVALID_HFCLK_IDX 0xFFu
 
-/* Map peri group to the HF clock index that drives it on PSE84.
- * Mirrors ifx_cat1_get_hfclk_for_peri_group() in uart_infineon_pdl.c.
- */
+/* Return HFCLK index for the provided peri-group key. */
 static uint8_t _i2c_get_hfclk_for_peri_group(uint8_t peri_group)
 {
 #if defined(CONFIG_SOC_SERIES_PSE84)
@@ -280,21 +276,34 @@ static uint8_t _i2c_get_hfclk_for_peri_group(uint8_t peri_group)
 	default:
 		break;
 	}
+	return IFX_CAT1_INVALID_HFCLK_IDX;
+#else
+	ARG_UNUSED(peri_group);
+	return IFX_CAT1_INVALID_HFCLK_IDX;
 #endif
-	return 0;
 }
 
 /*
- * Set the peri clock divider for I2C on PSOC Edge so that the SCB input clock
- * falls in the range required by Cy_SCB_I2C_SetDataRate().
+ * Configure the SCB oversampling clock divider for I2C on PSoC Edge.
  *
- * Target peri frequencies (from the PDL API Reference Guide for PSOC Edge):
- *   Controller 100 kHz:  [1.55, 3.2]  MHz -> 2 MHz
- *   Controller 400 kHz:  [7.82, 10]   MHz -> 8.5 MHz
- *   Controller 1 MHz:    [14.32, 25.8] MHz -> 20 MHz
- *   Target     100 kHz:  [1.55, 12.8] MHz -> 6 MHz
- *   Target     400 kHz:  [7.82, 15.38] MHz -> 12 MHz
- *   Target     1 MHz:    [15.84, 89.0] MHz -> 50 MHz
+ * Assumes freq is a valid, non-zero I2C data rate as validated by the
+ * caller (ifx_cat1_i2c_configure).
+ *
+ * The SCB requires specific oversampling clock (clk_scb) frequency ranges
+ * depending on the I2C speed and whether the device is in controller or
+ * target mode.
+ *
+ * Oversampling clock requirements (from device reference manuals):
+ *
+ * Controller mode:
+ *   100 kHz:  [1.55, 3.2] MHz    (selected: 2 MHz)
+ *   400 kHz:  [7.82, 10] MHz     (selected: 8.5 MHz)
+ *   1 MHz:    [14.32, 25.8] MHz  (selected: 20 MHz)
+ *
+ * Target mode:
+ *   100 kHz:  [1.55, 12.8] MHz   (selected: 6 MHz)
+ *   400 kHz:  [7.82, 15.38] MHz  (selected: 12 MHz)
+ *   1 MHz:    [15.84, 89.0] MHz  (selected: 50 MHz)
  */
 static int _i2c_set_peri_divider_edge(const struct device *dev, uint32_t freq, bool is_target_mode)
 {
@@ -311,6 +320,7 @@ static int _i2c_set_peri_divider_edge(const struct device *dev, uint32_t freq, b
 	uint32_t peri_freq = 0;
 	uint32_t source_freq;
 	uint32_t div_value;
+	uint8_t hfclk_idx;
 	cy_rslt_t status;
 
 	if (freq <= CY_SCB_I2C_STD_DATA_RATE) {
@@ -328,8 +338,12 @@ static int _i2c_set_peri_divider_edge(const struct device *dev, uint32_t freq, b
 		return -EINVAL;
 	}
 
-	source_freq = Cy_SysClk_ClkHfGetFrequency(
-		_i2c_get_hfclk_for_peri_group(data->clock_peri_group));
+	hfclk_idx = _i2c_get_hfclk_for_peri_group(data->clock_peri_group);
+	if (hfclk_idx == IFX_CAT1_INVALID_HFCLK_IDX) {
+		return -ENOTSUP;
+	}
+
+	source_freq = Cy_SysClk_ClkHfGetFrequency(hfclk_idx);
 	if (source_freq == 0) {
 		return -EIO;
 	}
