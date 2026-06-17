@@ -556,10 +556,18 @@ static void ifx_cat1_uart_irq_err_disable(const struct device *dev)
 
 static int ifx_cat1_uart_irq_is_pending(const struct device *dev)
 {
-	const struct ifx_cat1_uart_config *const config = dev->config;
-	uint32_t intcause = Cy_SCB_GetInterruptCause(config->reg_addr);
-
-	return (int)(intcause & (CY_SCB_TX_INTR | CY_SCB_RX_INTR));
+	/*
+	* Report a pending interrupt based on the actual serviceable state of
+	* the hardware (RX FIFO occupancy and enabled TX readiness) rather than
+	* the latched interrupt-cause register. The ISR clears RX_NOT_EMPTY /
+	* TX_EMPTY before invoking the callback, and those flags are re-asserted
+	* by hardware only after a latency. Reading the cause register here would
+	* therefore frequently return "not pending" even though there is still data
+	* in the RX FIFO. For example, on a BLE HCI UART connection the H4 Bluetooth
+	* ISR loop would exit without draining the FIFO, dropping nearly every RX
+	* byte and causing the controller firmware download to time out.
+	*/
+	return (ifx_cat1_uart_irq_rx_ready(dev) || ifx_cat1_uart_irq_tx_ready(dev));
 }
 
 /* Start processing interrupts in ISR.
