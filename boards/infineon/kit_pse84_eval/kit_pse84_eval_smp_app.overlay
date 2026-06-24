@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2026 Infineon Technologies AG,
+ * or an affiliate of Infineon Technologies AG.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * DTS overlay for an MCUBoot-chainloaded app exposing an in-app SMP/mcumgr
+ * server over UART (e.g. smp_svr). Slots come from the MCUBoot config
+ * (kit_pse84_eval_slot.conf), not chosen-node overrides.
+ *
+ *   console / log    -> uart1 (SCB1, MiniProg4 VCOM, P9.2/P9.3)
+ *   SMP / mcumgr DFU  -> uart2 (SCB2, KitProg3 VCOM, defined in common dtsi)
+ */
+/ {
+	chosen {
+		/* App console / logs over SCB1 (MiniProg4) */
+		zephyr,console = &uart1;
+		/* In-app SMP/mcumgr transport over SCB2 (KitProg3) */
+		zephyr,uart-mcumgr = &uart2;
+	};
+};
+
+/* Enable peri0 group8 16-bit clock divider used by SCB1. */
+&peri0_group8_16bit_0 {
+	status = "okay";
+	clock-div = <1>;
+};
+
+/* SCB1 as a 115200-baud UART for the app console (TX P9.2, RX P9.3). */
+uart1: &scb1 {
+	compatible = "infineon,uart";
+	status = "okay";
+	current-speed = <115200>;
+	clocks = <&peri0_group8_16bit_0>;
+	pinctrl-0 = <&p9_2_scb1_uart_tx &p9_3_scb1_uart_rx>;
+	pinctrl-names = "default";
+};
+
+&p9_2_scb1_uart_tx {
+	drive-push-pull;
+};
+
+&p9_3_scb1_uart_rx {
+	input-enable;
+};
