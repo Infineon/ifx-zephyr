@@ -19,6 +19,7 @@
 #include "cy_pdl.h"
 
 #include "pse84_boot.h"
+#include "pse84_s_sau.h"
 
 static void systeminit_enable_clocks(void)
 {
