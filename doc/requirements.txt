@@ -179,6 +179,7 @@ docutils==0.22.4 \
     #   sphinx-rtd-theme
     #   sphinx-tabs
     #   sphinx-togglebutton
+    #   sphinxcontrib-programoutput
 doxmlparser==1.17.0 \
     --hash=sha256:376b12f43ee037fb98f471512e257ba022245829940532019241f17be5a93b24
     # via -r requirements.in
@@ -460,9 +461,9 @@ pyserial==3.5 \
     --hash=sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb \
     --hash=sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0
     # via -r requirements.in
-pytest==9.0.3 \
-    --hash=sha256:2c5efc453d45394fdd706ade797c0a81091eccd1d6e4bccfcd476e2b8e0ab5d9 \
-    --hash=sha256:b86ada508af81d19edeb213c681b1d48246c1a91d304c6c81a427674c17eb91c
+pytest==9.1.0 \
+    --hash=sha256:41dd9148c08072446394cefd3d79701701335a9f4cae69ba92e39f6c7f5c061c \
+    --hash=sha256:8ebb0e7888bdf2bdfc602ec51f8f62d50200af37356c74e503c79a94f5c81f32
     # via -r requirements.in
 python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
@@ -647,9 +648,9 @@ sphinxcontrib-mermaid==2.0.2 \
     --hash=sha256:d862e514991279fb4816302c5cfe167d2557bf3ce7125ae0cb47dac80a0f46ce \
     --hash=sha256:f09576c78ca93fa0e3034fd9c45aaffa7c44ab449de9c43b8b8d262afe52bc66
     # via -r requirements.in
-sphinxcontrib-programoutput==0.19 \
-    --hash=sha256:787ca068b7e1205ed492ea20a23a8e599c3b4edb8c43bacf564e5ec7c30c7dad \
-    --hash=sha256:95ff4219ecee64bebf4fc6d2339cb1c2f313258b9999143e54839d83ae32afd1
+sphinxcontrib-programoutput==0.20 \
+    --hash=sha256:5c4282c1c7fc9b5a23febe16ae038b6392d7ce068d186ad4870ba22e74db0711 \
+    --hash=sha256:f473f9e7992879358efdeb9962fbec2103f6ba1cb6a738eb7f81dae554bc5ec7
     # via -r requirements.in
 sphinxcontrib-qthelp==2.0.0 \
     --hash=sha256:4fe7d0ac8fc171045be623aba3e2a8f613f8682731f9153bb2e40ece16b9bbab \
