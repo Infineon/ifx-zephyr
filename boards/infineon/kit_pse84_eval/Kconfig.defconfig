@@ -71,3 +71,6 @@ config ROM_START_OFFSET
 	default 0x400 if BUILD_WITH_TFM
 	default 0x400 if BOOTLOADER_MCUBOOT
 	default 0x400 if MCUBOOT
+
+config FLASH_FILL_BUFFER_SIZE
+	default 256 if FLASH
