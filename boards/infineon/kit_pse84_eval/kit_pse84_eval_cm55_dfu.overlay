@@ -1,0 +1,51 @@
+/*
+ * Copyright (c) 2026 Infineon Technologies AG,
+ * or an affiliate of Infineon Technologies AG.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * CM55 DTS overlay for the in-app DFU scenario.
+ *
+ * The CM33-NS smp_svr owns SCB2 (KitProg3) for its mcumgr transport. By
+ * default the CM55 console also uses SCB2 and its UART driver re-inits it at
+ * boot, breaking the transport (NMP timeout). Disable SCB2 on the CM55 and
+ * move its console/shell to SCB3 (uart3, P21.5/P21.6).
+ */
+
+/ {
+	chosen {
+		zephyr,console = &uart3;
+		zephyr,shell-uart = &uart3;
+	};
+};
+
+/* Keep the CM55 off SCB2 so it does not disturb the CM33-NS mcumgr transport. */
+&scb2 {
+	status = "disabled";
+};
+
+/* Free 16-bit clock divider for SCB3 (SCB2 uses peri0_group1_16bit_0). */
+&peri0_group1_16bit_1 {
+	status = "okay";
+	clock-div = <1>;
+};
+
+/* SCB3 as a 115200-baud UART for the CM55 console/shell (TX P21.5, RX P21.6). */
+uart3: &scb3 {
+	compatible = "infineon,uart";
+	status = "okay";
+	current-speed = <115200>;
+	clocks = <&peri0_group1_16bit_1>;
+	pinctrl-0 = <&p21_5_scb3_uart_tx &p21_6_scb3_uart_rx>;
+	pinctrl-names = "default";
+};
+
+&p21_5_scb3_uart_tx {
+	drive-push-pull;
+};
+
+&p21_6_scb3_uart_rx {
+	input-enable;
+};

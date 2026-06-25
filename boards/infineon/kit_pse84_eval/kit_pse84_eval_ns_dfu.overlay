@@ -1,0 +1,53 @@
+/*
+ * NS in-app DFU slot remap for kit_pse84_eval.
+ *
+ * The canonical slot0/slot1_partition labels live on the secure flash view
+ * (MCUboot image 0 = TF-M). Re-bind them to the NS image (MCUboot image 1)
+ * partitions on flash0 (@0x08000000) so a non-secure smp_svr app updates the
+ * NS image instead of overwriting the secure one.
+ */
+
+&flash0_s {
+	partitions {
+		/delete-node/ partition@100000;
+		/delete-node/ partition@700000;
+
+		/*
+		 * Recreate secure slots without slot0/slot1 labels (moved to the
+		 * NS view); keep m33s_xip / slot{0,1}_s_partition for the TF-M
+		 * and SoC signing scripts.
+		 */
+		slot0_s_partition: m33s_xip: partition@100000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-0";
+			reg = <0x100000 0x240000>;
+		};
+
+		slot1_s_partition: partition@700000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-1";
+			reg = <0x700000 0x240000>;
+		};
+	};
+};
+
+&flash0 {
+	partitions {
+		/delete-node/ partition@340000;
+		/delete-node/ partition@940000;
+
+		/* NS primary: also the canonical MCUboot slot0_partition. */
+		slot0_partition: slot0_ns_partition: m33_xip: partition@340000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-2";
+			reg = <0x340000 0x1c0000>;
+		};
+
+		/* NS secondary: also the canonical MCUboot slot1_partition. */
+		slot1_partition: slot1_ns_partition: partition@940000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-3";
+			reg = <0x940000 0x1c0000>;
+		};
+	};
+};

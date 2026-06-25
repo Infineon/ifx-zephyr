@@ -1,0 +1,78 @@
+/*
+ * Multi-image in-app DFU slot remap for kit_pse84_eval (NS smp_svr).
+ *
+ * Extends kit_pse84_eval_ns_dfu.overlay so the NS smp_svr can stage two
+ * MCUboot images: app image 0 = CM33-NS self (0x340000/0x940000), app image 1
+ * = CM55 (0x580000/0xB00000). img_mgmt maps app image i to slot{2i}/slot{2i+1},
+ * so 'mcumgr image upload -n 1' writes the CM55 secondary at 0xB00000 (MCUboot
+ * image 2) via the NS flash view. Build with -DCONFIG_UPDATEABLE_IMAGE_NUMBER=2.
+ */
+
+&flash0_s {
+	partitions {
+		/delete-node/ partition@100000;
+		/delete-node/ partition@700000;
+		/delete-node/ partition@340000;	/* slot2_partition (NS secure-view alias) */
+		/delete-node/ partition@940000;	/* slot3_partition (NS secure-view alias) */
+
+		/*
+		 * Recreate secure slots without slot0/slot1 labels (moved to the
+		 * NS view); keep m33s_xip / slot{0,1}_s_partition for the TF-M
+		 * and SoC signing scripts.
+		 */
+		slot0_s_partition: m33s_xip: partition@100000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-0";
+			reg = <0x100000 0x240000>;
+		};
+
+		slot1_s_partition: partition@700000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-1";
+			reg = <0x700000 0x240000>;
+		};
+	};
+};
+
+&flash0 {
+	partitions {
+		/delete-node/ partition@340000;
+		/delete-node/ partition@940000;
+
+		/* app image 0 primary: NS self (canonical MCUboot slot0_partition). */
+		slot0_partition: slot0_ns_partition: m33_xip: partition@340000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-2";
+			reg = <0x340000 0x1c0000>;
+		};
+
+		/* app image 0 secondary: NS self (canonical MCUboot slot1_partition). */
+		slot1_partition: slot1_ns_partition: partition@940000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-3";
+			reg = <0x940000 0x1c0000>;
+		};
+
+		/*
+		 * app image 1 primary: CM55, NS-view alias of slot4_partition.
+		 * Same physical bytes as flash0_sahb m55_xip @0x580000.
+		 */
+		slot2_partition: partition@580000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-4-ns";
+			reg = <0x580000 0x200000>;
+		};
+
+		/*
+		 * app image 1 secondary: CM55, NS-view alias of slot5_partition
+		 * (same physical bytes as flash0_sahb @0xB00000). mcumgr writes
+		 * the CM55 binary + swap trailer here; MCUboot image 2 swaps it
+		 * into slot4 on the next boot.
+		 */
+		slot3_partition: partition@b00000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-5-ns";
+			reg = <0xb00000 0x200000>;
+		};
+	};
+};
