@@ -24,6 +24,7 @@
 		zephyr,console = &uart3;
 		zephyr,shell-uart = &uart3;
 		zephyr,canbus = &can1;
+		zephyr,entropy = &mxcryptolite_trng;
 	};
 };
 
@@ -151,5 +152,13 @@ uart3: &scb3 {
 
 &clk_hf3 {
 	source-path = <IFX_CLK_HF_IN_CLKPATH2>;
+	status = "okay";
+};
+
+&mxcryptolite_crypto {
+	status = "okay";
+};
+
+&mxcryptolite_trng {
 	status = "okay";
 };
