@@ -1,0 +1,58 @@
+/*
+ * CM55 external-QSPI flash-test overlay.
+ *
+ * Bind the infineon,qspi-flash driver to flash0_sahb (SAHB alias, base
+ * 0x60000000) - the bus the CM55 XIP-executes from - so the flash test
+ * exercises the real CM55 self-write path instead of the CBUS aliases.
+ *
+ * The driver picks its NV-flash node from DT_INST(0, zephyr_mapped_partition)
+ * (first-enumerated mapped-partition). All CBUS partitions (flash0 @ 0x08...,
+ * flash0_s @ 0x18...) are deleted so the first remaining mapped-partition is
+ * on flash0_sahb. The flash0_sahb partitions are then recreated carrying the
+ * slot0_partition / slot1_partition labels that cmake/mcuboot.cmake requires
+ * for image signing, plus the test storage_partition.
+ */
+
+/* Delete CBUS-NS (flash0 @ 0x08000000) partitions. */
+&flash0_partitions {
+	/delete-node/ storage@0;
+};
+/delete-node/ &slot0_ns_partition;
+/delete-node/ &slot1_ns_partition;
+
+/* Delete CBUS-S (flash0_s @ 0x18000000) partitions. */
+/delete-node/ &slot0_partition;
+/delete-node/ &slot1_partition;
+/delete-node/ &slot2_partition;
+/delete-node/ &slot3_partition;
+
+/* Recreate flash0_sahb partitions on the SAHB alias, re-homing the
+ * slot0/slot1 labels here and adding the test storage partition.
+ */
+&flash0_sahb {
+	partitions {
+		/delete-node/ partition@580000;
+		/delete-node/ partition@b00000;
+
+		/* CM55 primary image / MCUboot slot0 (code-partition). */
+		slot0_partition: m55_xip: slot4_partition: partition@580000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-4";
+			reg = <0x580000 0x200000>;
+		};
+
+		/* CM55 secondary / MCUboot slot1. */
+		slot1_partition: slot5_partition: partition@b00000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-5";
+			reg = <0xb00000 0x200000>;
+		};
+
+		/* Flash-test storage area on external QSPI (free space). */
+		storage_partition: partition@d00000 {
+			compatible = "zephyr,mapped-partition";
+			label = "storage-ext-qspi";
+			reg = <0xd00000 0x40000>;
+		};
+	};
+};
