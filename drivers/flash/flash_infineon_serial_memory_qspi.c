@@ -7,14 +7,6 @@
 
 #define DT_DRV_COMPAT     infineon_qspi_flash
 
-#if defined(CONFIG_DT_HAS_FIXED_PARTITIONS_ENABLED)
-#define SOC_NV_FLASH_NODE DT_PARENT(DT_INST(0, fixed_partitions))
-#else
-#define SOC_NV_FLASH_NODE DT_MEM_FROM_MAPPED_PARTITION(DT_INST(0, zephyr_mapped_partition))
-#endif
-
-#define PAGE_LEN DT_PROP(SOC_NV_FLASH_NODE, erase_block_size)
-
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/flash.h>
@@ -24,6 +16,38 @@
 #include <infineon_kconfig.h>
 #include "mtb_serial_memory.h"
 #include "cy_device_headers.h"
+
+/* Resolve the external QSPI memory node (a "soc-nv-flash" child of this SMIF
+ * controller) used to derive the flash geometry: total size, erase-block size,
+ * write-block size and the page layout.
+ *
+ * Prefer the board's chosen "zephyr,flash" ONLY when it is a memory node backed
+ * by THIS controller. On application builds the chosen "zephyr,flash" is the
+ * QSPI memory node this controller drives, and it unambiguously selects the
+ * correct bus-alias view (e.g. CBUS flash0 for m33/ns, SAHB flash0_sahb for
+ * m55) that the application runs from.
+ *
+ * On bootloader (MCUboot) builds the code runs from - and keeps its chosen
+ * "zephyr,flash" on - internal RRAM, which is NOT this controller. Blindly
+ * using the chosen node would apply the RRAM geometry (tiny page size, small
+ * span) to the much larger external QSPI: flash_area_sectors() then finds zero
+ * pages inside every QSPI slot (they sit above the RRAM span) and MCUboot's
+ * swap erase asserts. In that case, and on boards that do not declare a chosen
+ * "zephyr,flash", derive the geometry from this controller's own flash-memory
+ * node via one of its partitions instead.
+ */
+#if DT_HAS_CHOSEN(zephyr_flash) && \
+	DT_SAME_NODE(DT_PARENT(DT_CHOSEN(zephyr_flash)), DT_DRV_INST(0))
+#define SOC_NV_FLASH_NODE DT_CHOSEN(zephyr_flash)
+#elif DT_NODE_EXISTS(DT_INST(0, zephyr_mapped_partition))
+#define SOC_NV_FLASH_NODE DT_MEM_FROM_MAPPED_PARTITION(DT_INST(0, zephyr_mapped_partition))
+#elif defined(CONFIG_DT_HAS_FIXED_PARTITIONS_ENABLED)
+#define SOC_NV_FLASH_NODE DT_PARENT(DT_INST(0, fixed_partitions))
+#else
+#error "infineon,qspi-flash: unable to determine flash geometry node"
+#endif
+
+#define PAGE_LEN DT_PROP(SOC_NV_FLASH_NODE, erase_block_size)
 
 #ifdef CONFIG_FLASH_INFINEON_SMIF_HW_INIT
 PINCTRL_DT_INST_DEFINE(0);
@@ -208,6 +232,15 @@ ifx_serial_memory_flash_get_parameters(const struct device *dev)
 	return &ifx_serial_memory_flash_parameters;
 }
 
+static int ifx_serial_memory_flash_get_size(const struct device *dev, uint64_t *size)
+{
+	ARG_UNUSED(dev);
+
+	*size = (uint64_t)DT_REG_SIZE(SOC_NV_FLASH_NODE);
+
+	return 0;
+}
+
 #ifdef CONFIG_PM
 cy_en_syspm_status_t
 ifx_serial_memory_flash_pm_callback(cy_stc_syspm_callback_params_t *callbackParams,
@@ -365,6 +398,7 @@ static DEVICE_API(flash, ifx_serial_memory_flash_driver_api) = {
 	.write = ifx_serial_memory_flash_write,
 	.erase = ifx_serial_memory_flash_erase,
 	.get_parameters = ifx_serial_memory_flash_get_parameters,
+	.get_size = ifx_serial_memory_flash_get_size,
 #ifdef CONFIG_FLASH_PAGE_LAYOUT
 	.page_layout = ifx_serial_memory_flash_page_layout,
 #endif /* CONFIG_FLASH_PAGE_LAYOUT */
