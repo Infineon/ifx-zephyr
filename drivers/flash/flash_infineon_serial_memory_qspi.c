@@ -52,10 +52,8 @@ LOG_MODULE_REGISTER(flash_infineon, CONFIG_FLASH_LOG_LEVEL);
 
 extern cy_stc_smif_block_config_t smif0BlockConfig;
 static mtb_serial_memory_t serial_memory_obj;
-#ifdef CONFIG_FLASH_INFINEON_SMIF_HW_INIT
 static cy_stc_smif_mem_context_t smif_mem_context;
 static cy_stc_smif_mem_info_t smif_mem_info;
-#endif /* CONFIG_FLASH_INFINEON_SMIF_HW_INIT */
 
 #ifdef CONFIG_PM
 #ifdef CONFIG_SOC_SERIES_PSE84
@@ -322,14 +320,21 @@ static int ifx_serial_memory_flash_init(const struct device *dev)
 	struct ifx_serial_memory_flash_data *data = dev->data;
 
 #ifdef CONFIG_FLASH_INFINEON_SMIF_HW_INIT
+	/* Destructive SMIF (re)init, only for the first image to touch the SMIF.
+	 * A chain-loaded app already running XIP must not re-init the live SMIF.
+	 */
 	int ret = ifx_serial_memory_hw_init();
 
 	if (ret) {
 		LOG_ERR("SMIF HW init failed: %d", ret);
 		return ret;
 	}
+#endif /* CONFIG_FLASH_INFINEON_SMIF_HW_INIT */
 
-	/* Set-up serial memory. */
+	/* Always build the serial-memory object so read/write/erase have a valid
+	 * mem_context. Without HW_INIT the SMIF is already live (MCUboot/ROM), so
+	 * just attach without tearing down the XIP mapping we execute from.
+	 */
 	cy_rslt_t result = mtb_serial_memory_setup(
 		&serial_memory_obj, MTB_SERIAL_MEMORY_CHIP_SELECT_1, IFX_SERIAL_MEMORY_SMIF,
 		&CYBSP_SMIF_CORE_0_XSPI_FLASH_hal_clock, &smif_mem_context, &smif_mem_info,
@@ -338,14 +343,6 @@ static int ifx_serial_memory_flash_init(const struct device *dev)
 		LOG_ERR("serial memory setup failed (QSPI) : 0x%x", result);
 		return -EIO;
 	}
-#endif /* CONFIG_FLASH_INFINEON_SMIF_HW_INIT */
-
-#if defined(CONFIG_MCUBOOT)
-	/* Enable XIP/memory-mapped mode so apps can execute from external flash
-	 * after MCUboot jumps to them.
-	 */
-	Cy_SMIF_SetMode(IFX_SERIAL_MEMORY_SMIF, CY_SMIF_MEMORY);
-#endif
 
 #if defined(CONFIG_MCUBOOT)
 	/* Enable XIP/memory-mapped mode so apps can execute from external flash
