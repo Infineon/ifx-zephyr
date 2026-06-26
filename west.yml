@@ -192,7 +192,7 @@ manifest:
     - name: hal_infineon
       remote: ifx-zephyr
       repo-path: hal_infineon
-      revision: 7954fd79922bef1d01f5513a7e09235243409e9b
+      revision: b7ee0ccb716eee82ac66c5851e82843daee2a783
       path: modules/hal/infineon
       groups:
         - hal
