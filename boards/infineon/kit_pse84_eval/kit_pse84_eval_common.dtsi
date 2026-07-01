@@ -52,6 +52,34 @@ zephyr_udc0: &usbhs {
 	status = "okay";
 };
 
+/* SCB1 (MiniProg4 VCOM, P9.2 TX / P9.3 RX) is the default console/log UART.
+ * Kept free of the KitProg3 VCOM (SCB2/uart2) so that transport can be
+ * dedicated to mcumgr / serial-recovery DFU.
+ */
+uart1: &scb1 {
+	compatible = "infineon,uart";
+	status = "okay";
+	current-speed = <115200>;
+
+	clocks = <&peri0_group8_16bit_0>;
+
+	pinctrl-0 = <&p9_2_scb1_uart_tx &p9_3_scb1_uart_rx>;
+	pinctrl-names = "default";
+};
+
+&peri0_group8_16bit_0 {
+	status = "okay";
+	clock-div = <1>;
+};
+
+&p9_2_scb1_uart_tx {
+	drive-push-pull;
+};
+
+&p9_3_scb1_uart_rx {
+	input-enable;
+};
+
 uart2: &scb2 {
 	compatible = "infineon,uart";
 	status = "okay";

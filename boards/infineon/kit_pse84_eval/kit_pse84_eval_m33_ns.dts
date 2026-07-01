@@ -29,8 +29,8 @@
 		zephyr,flash = &flash0;
 		zephyr,code-partition = &m33_xip;
 		zephyr,sram = &m33_data;
-		zephyr,console = &uart2;
-		zephyr,shell-uart = &uart2;
+		zephyr,console = &uart1;
+		zephyr,shell-uart = &uart1;
 	};
 };
 
