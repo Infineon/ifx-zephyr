@@ -14,10 +14,21 @@
  * across CBUS-S, CBUS-NS and SAHB) is defined in
  * kit_pse84_eval_memory_map.dtsi so that the bootloader inherits
  * the same view used by the SPE / NSPE / CM55 builds.
+ *
+ * Console/log stays on SCB1 (MiniProg4 VCOM) via the board default; this
+ * overlay only selects SCB2 (uart2, KitProg3 VCOM) as the serial-recovery
+ * (mcumgr) UART.
  */
 / {
 	chosen {
 		zephyr,code-partition = &boot_partition;
 		zephyr,flash = &rram0;
+		/* DFU / serial recovery over SCB2 (KitProg3). */
+		zephyr,uart-mcumgr = &uart2;
+	};
+
+	aliases {
+		/* SW_1 (P8.3) used as the serial recovery entrance button. */
+		mcuboot-button0 = &user_bt;
 	};
 };
