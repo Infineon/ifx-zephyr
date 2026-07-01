@@ -1,0 +1,54 @@
+/*
+ * CM55 self in-app DFU slot remap for kit_pse84_eval.
+ *
+ * For a CM55 app running smp_svr, the canonical slot0/slot1_partition labels
+ * resolve to the CM33 SECURE image on flash0_s (MCUboot image 0). Re-bind them
+ * to the CM55 image (MCUboot image 2) on the SAHB view flash0_sahb
+ * (@0x60000000): primary 0x580000, secondary 0xB00000. img_mgmt then writes the
+ * CM55 secondary and MCUboot swaps image 2, letting the CM55 update itself.
+ */
+
+&flash0_s {
+	partitions {
+		/delete-node/ partition@100000;
+		/delete-node/ partition@700000;
+
+		/*
+		 * Recreate secure slots without slot0/slot1 labels (moved to the
+		 * CM55 SAHB view); keep m33s_xip / slot{0,1}_s_partition for the
+		 * TF-M and SoC signing scripts.
+		 */
+		slot0_s_partition: m33s_xip: partition@100000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-0";
+			reg = <0x100000 0x240000>;
+		};
+
+		slot1_s_partition: partition@700000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-1";
+			reg = <0x700000 0x240000>;
+		};
+	};
+};
+
+&flash0_sahb {
+	partitions {
+		/delete-node/ partition@580000;
+		/delete-node/ partition@b00000;
+
+		/* CM55 primary: also canonical MCUboot slot0_partition and code XIP. */
+		slot0_partition: m55_xip: slot4_partition: partition@580000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-4";
+			reg = <0x580000 0x200000>;
+		};
+
+		/* CM55 secondary: also canonical MCUboot slot1_partition. */
+		slot1_partition: slot5_partition: partition@b00000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-5";
+			reg = <0xb00000 0x200000>;
+		};
+	};
+};
