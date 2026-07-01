@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2026 Infineon Technologies AG,
+ * or an affiliate of Infineon Technologies AG.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * CM33-NS blinky console overlay for the CM55-owned in-app DFU scenario.
+ *
+ * The CM55 smp_svr owns SCB2 (KitProg3 VCOM) for its mcumgr transport and
+ * SCB1 (MiniProg4 VCOM) for its console/log. This CM33-NS blinky only needs a
+ * console for its own logs, so route it to SCB1 (shared with the CM55 console,
+ * interleaved) and DISABLE SCB2 here so the CM33-NS side never re-inits it and
+ * disturbs the CM55 mcumgr transport.
+ *
+ *   console / log -> uart1 (SCB1, MiniProg4 VCOM, P9.2/P9.3)
+ *   SCB2          -> disabled (owned by the CM55 mcumgr transport)
+ */
+/ {
+	chosen {
+		zephyr,console = &uart1;
+		zephyr,shell-uart = &uart1;
+	};
+};
+
+/* Enable peri0 group8 16-bit clock divider used by SCB1. */
+&peri0_group8_16bit_0 {
+	status = "okay";
+	clock-div = <1>;
+};
+
+/* SCB1 as a 115200-baud UART for the CM33-NS console (TX P9.2, RX P9.3). */
+uart1: &scb1 {
+	compatible = "infineon,uart";
+	status = "okay";
+	current-speed = <115200>;
+	clocks = <&peri0_group8_16bit_0>;
+	pinctrl-0 = <&p9_2_scb1_uart_tx &p9_3_scb1_uart_rx>;
+	pinctrl-names = "default";
+};
+
+&p9_2_scb1_uart_tx {
+	drive-push-pull;
+};
+
+&p9_3_scb1_uart_rx {
+	input-enable;
+};
+
+/* Leave SCB2 (KitProg3) for the CM55 mcumgr transport. */
+&scb2 {
+	status = "disabled";
+};
