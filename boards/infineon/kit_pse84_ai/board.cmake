@@ -33,3 +33,5 @@ endif()
 if(CONFIG_CPU_CORTEX_M33 AND CONFIG_TRUSTED_EXECUTION_NONSECURE)
   set_property(TARGET runners_yaml_props_target PROPERTY hex_file tfm_merged.hex)
 endif()
+
+include(${ZEPHYR_BASE}/boards/common/probe-rs.board.cmake)
