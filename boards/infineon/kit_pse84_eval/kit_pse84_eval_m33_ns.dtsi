@@ -5,8 +5,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/dts-v1/;
-#include <infineon/edge/mpns/pse846gps2dbzc4a.dtsi>
+
 #include <infineon/edge/pse84/pse84.cm33.dtsi>
 #include <infineon/edge/pse84/system_clocks.dtsi>
 

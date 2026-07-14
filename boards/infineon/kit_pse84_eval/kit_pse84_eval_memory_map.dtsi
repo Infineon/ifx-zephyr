@@ -24,10 +24,7 @@
  *   0x26100000  CM55 data                  256 kB
  *
  * RRAM (512 kB)
- *   0x220000000  ext-boot reserved   68 kB
- *   0x220011000  MCUboot bootloader 256 kB  boot_partition
- *   0x220051000  storage             72 kB
- *   0x220063000  security reserved  116 kB
+ *   SoC-specific; see kit_pse84_eval_<soc>_rram.dtsi.
  *
  * External QSPI flash (16 MB) - ONE physical device, four bus windows onto
  * the SAME bytes at the SAME offsets. Only the window base differs, so the
@@ -318,56 +315,7 @@
 		};
 	};
 
-	rram_controller: rram_controller@42200000 {
-		compatible = "infineon,rram-controller";
-		reg = <0x42200000 0x10000>;
-		#address-cells = <1>;
-		#size-cells = <1>;
-		ranges;
-		status = "okay";
-
-		rram0: rram0@22000000 {
-			compatible = "soc-nv-flash";
-			reg = <0x22000000 DT_SIZE_K(512)>;
-			#address-cells = <1>;
-			#size-cells = <1>;
-			ranges = <0x0 0x22000000 DT_SIZE_K(512)>;
-			write-block-size = <16>;
-			erase-block-size = <16>;
-			status = "okay";
-
-			partitions {
-				#address-cells = <1>;
-				#size-cells = <1>;
-				ranges;
-
-				reserved_extended_boot: reserved@0 {
-					compatible = "zephyr,mapped-partition";
-					label = "reserved-extended-boot";
-					reg = <0x0 0x11000>;
-					read-only;
-				};
-
-				boot_partition: boot_partition@11000 {
-					compatible = "zephyr,mapped-partition";
-					label = "mcuboot";
-					reg = <0x11000 0x40000>;
-					read-only;
-				};
-
-				storage_partition_rram: storage_rram@51000 {
-					compatible = "zephyr,mapped-partition";
-					label = "storage-rram";
-					reg = <0x51000 0x12000>;
-				};
-
-				reserved_security: reserved@63000 {
-					compatible = "zephyr,mapped-partition";
-					label = "reserved-security";
-					reg = <0x63000 0x1d000>;
-					read-only;
-				};
-			};
-		};
-	};
+	/* The RRAM controller and its partition layout are SoC-specific and are
+	 * provided by the per-SoC kit_pse84_eval_<soc>_rram.dtsi include.
+	 */
 };

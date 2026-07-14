@@ -1,0 +1,70 @@
+/*
+ * SPDX-FileCopyrightText: <text>Copyright (c) 2026 Infineon Technologies AG,
+ * or an affiliate of Infineon Technologies AG. All rights reserved.</text>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	/* RRAM memory (512 KB) assignment for the EPC4 (PSE846GPS4DBZC4A) device.
+	 * The EPC4 device reserves a larger security region that starts at
+	 * 0x40000 (instead of 0x63000 on the EPC2 device), so the boot and
+	 * storage partitions below it are reduced accordingly.
+	 *   0x00000 - 0x10FFF : reserved-extended-boot (68 KB)
+	 *   0x11000 - 0x30FFF : boot_partition (128 KB) - MCUBoot bootloader
+	 *   0x31000 - 0x3FFFF : storage_rram (60 KB)
+	 *   0x40000 - 0x7FFFF : reserved-security (256 KB)
+	 */
+	rram_controller: rram_controller@42200000 {
+		compatible = "infineon,rram-controller";
+		reg = <0x42200000 0x10000>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+		status = "okay";
+
+		rram0: rram0@22000000 {
+			compatible = "soc-nv-flash";
+			reg = <0x22000000 DT_SIZE_K(512)>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges = <0x0 0x22000000 DT_SIZE_K(512)>;
+			write-block-size = <16>;
+			erase-block-size = <16>;
+			status = "okay";
+
+			partitions {
+				#address-cells = <1>;
+				#size-cells = <1>;
+				ranges;
+
+				reserved_extended_boot: reserved@0 {
+					compatible = "zephyr,mapped-partition";
+					label = "reserved-extended-boot";
+					reg = <0x0 0x11000>;
+					read-only;
+				};
+
+				boot_partition: boot_partition@11000 {
+					compatible = "zephyr,mapped-partition";
+					label = "mcuboot";
+					reg = <0x11000 0x20000>;
+					read-only;
+				};
+
+				storage_partition_rram: storage_rram@31000 {
+					compatible = "zephyr,mapped-partition";
+					label = "storage-rram";
+					reg = <0x31000 0xf000>;
+				};
+
+				reserved_security: reserved@40000 {
+					compatible = "zephyr,mapped-partition";
+					label = "reserved-security";
+					reg = <0x40000 0x40000>;
+					read-only;
+				};
+			};
+		};
+	};
+};

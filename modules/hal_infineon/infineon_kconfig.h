@@ -26,11 +26,22 @@
  * peripheral instances to the corresponding symbols used inside of Infineon code.
  */
 
+
+#if defined(CONFIG_SOC_SERIES_PSE84)
+
 #if defined(CONFIG_SOC_PSE846GPS2DBZC4A)
 
 #ifndef PSE846GPS2DBZC4A
 #define PSE846GPS2DBZC4A
 #endif /* PSE846GPS2DBZC4A */
+#endif /* CONFIG_SOC_PSE846GPS2DBZC4A* */
+
+#if defined(CONFIG_SOC_PSE846GPS4DBZC4A)
+
+#ifndef PSE846GPS4DBZC4A
+#define PSE846GPS4DBZC4A
+#endif /* PSE846GPS4DBZC4A */
+#endif /* CONFIG_SOC_PSE846GPS4DBZC4A */
 
 #if defined(CONFIG_CPU_CORTEX_M33)
 
@@ -62,8 +73,10 @@
 #define CORE_NAME_CM55_0
 #endif /* CORE_NAME_CM55_0 */
 
-#endif /* CONFIG_CPU_CORTEXT_M33* */
-#endif /* CONFIG_SOC_PSE846GPS2DBZC4A* */
+#endif /* CONFIG_CPU_CORTEX_M33* */
+
+
+#endif /* CONFIG_SOC_SERIES_PSE84* */
 
 #if defined(CONFIG_SOC_SERIES_PSOC4100TP)
 
