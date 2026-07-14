@@ -23,6 +23,14 @@ board_runner_args(openocd "--gdb-init=maint flush register-cache")
 board_runner_args(openocd "--gdb-init=tb main")
 board_runner_args(openocd "--gdb-init=continue")
 
+# The EPC4 (PSE846GPS4DBZC4A) device uses a different OpenOCD target than the
+# EPC2 device, so select the EPC4-specific board configuration file.
+if(CONFIG_SOC_PSE846GPS4DBZC4A)
+  board_runner_args(openocd "--config=${BOARD_DIR}/support/openocd_pse846gps4dbzc4a.cfg")
+endif()
+
+board_runner_args(probe-rs "--chip=PSE846GPS4DBZC4A")
+
 include(${ZEPHYR_BASE}/boards/common/openocd.board.cmake)
 
 if(CONFIG_CPU_CORTEX_M33 AND CONFIG_TRUSTED_EXECUTION_SECURE)
