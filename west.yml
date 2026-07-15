@@ -23,6 +23,8 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
     - name: babblesim
       url-base: https://github.com/BabbleSim
+    - name: ifx-zephyr
+      url-base: https://github.com/Infineon/ifx-zephyr-hal_infineon
 
   group-filter: [-babblesim, -optional, -testing]
 
@@ -188,7 +190,9 @@ manifest:
       groups:
         - hal
     - name: hal_infineon
-      revision: c73313ab49840fee98cb347034526aaab62122a6
+      remote: ifx-zephyr
+      repo-path: hal_infineon
+      revision: 7954fd79922bef1d01f5513a7e09235243409e9b
       path: modules/hal/infineon
       groups:
         - hal
