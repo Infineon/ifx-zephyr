@@ -332,6 +332,13 @@ if(CONFIG_BUILD_WITH_TFM)
   add_custom_target(tfm_cmake
     DEPENDS ${TFM_BINARY_DIR}/CMakeCache.txt
   )
+  if(CONFIG_TFM_IFX_SELF_FETCH_CRYPTO)
+    # Do not hand TF-M the Zephyr TF-PSA-Crypto module; let it fetch and
+    # patch a pristine tree itself (matches upstream/ifx-tf-m behavior).
+    set(TFM_TF_PSA_CRYPTO_PATH_ARG)
+  else()
+    set(TFM_TF_PSA_CRYPTO_PATH_ARG -DTF_PSA_CRYPTO_PATH=${ZEPHYR_TF_PSA_CRYPTO_MODULE_DIR})
+  endif()
   add_custom_command(
     OUTPUT ${TFM_BINARY_DIR}/CMakeCache.txt
     COMMAND ${CMAKE_COMMAND}
@@ -345,7 +352,7 @@ if(CONFIG_BUILD_WITH_TFM)
       -DPython3_EXECUTABLE=${Python3_EXECUTABLE}
       ${TFM_CMAKE_ARGS}
       $<GENEX_EVAL:$<TARGET_PROPERTY:zephyr_property_target,TFM_CMAKE_OPTIONS>>
-      -DTF_PSA_CRYPTO_PATH=${ZEPHYR_TF_PSA_CRYPTO_MODULE_DIR}
+      ${TFM_TF_PSA_CRYPTO_PATH_ARG}
       -DCMSIS_PATH=${ZEPHYR_CMSIS_6_MODULE_DIR}
       ${ZEPHYR_TRUSTED_FIRMWARE_M_MODULE_DIR}
     WORKING_DIRECTORY ${TFM_BINARY_DIR}
