@@ -9,6 +9,17 @@
 config ZEPHYR_TRUSTED_FIRMWARE_M_MODULE
 	bool
 
+config TFM_IFX_SELF_FETCH_CRYPTO
+	bool "Let TF-M fetch and patch its own TF-PSA-Crypto"
+	default y if BOARD_KIT_PSE84_EVAL_PSE846GPS2DBZC4A_M33_NS
+	default y if BOARD_KIT_PSE84_AI_PSE846GPS2DBZC4A_M33_NS
+	help
+	  When enabled, the Zephyr-provided TF-PSA-Crypto module path is NOT
+	  passed to the TF-M build. TF-M instead fetches pristine TF-PSA-Crypto
+	  and applies its own (and platform) patches, as with upstream TF-M.
+	  Required for the Infineon downstream TF-M (ifx-tf-m), whose crypto
+	  patch stack is authored against the pristine tree.
+
 config TFM_BOARD
 	string
 	default "adi/max32657" if BOARD_MAX32657EVKIT_MAX32657_NS || BOARD_MAX32658EVKIT_MAX32658_NS
