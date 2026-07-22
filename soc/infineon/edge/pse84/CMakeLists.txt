@@ -6,8 +6,13 @@
 include(${ZEPHYR_BASE}/soc/infineon/edge/pse84/pse84_metadata.cmake)
 
 if(CONFIG_BUILD_WITH_TFM)
+  if(CONFIG_SOC_PSE846GPS4DBZC4A)
+    set(IFX_EPC_VARIANT epc4)
+  else()
+    set(IFX_EPC_VARIANT epc2)
+  endif()
   set_property(TARGET zephyr_property_target APPEND PROPERTY TFM_CMAKE_OPTIONS
-    -DIFX_EPC=epc2
+    -DIFX_EPC=${IFX_EPC_VARIANT}
     -DIFX_UART_ENABLED=OFF
     # Use local hal_infineon assets instead of fetching from GitHub
     -DIFX_CORE_LIB_PATH=${ZEPHYR_HAL_INFINEON_MODULE_DIR}/core-lib

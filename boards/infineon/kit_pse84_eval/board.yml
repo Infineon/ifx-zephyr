@@ -13,3 +13,6 @@ board:
     - name: ns
       cpucluster: m33
   - name: pse846gps4dbzc4a
+    variants:
+    - name: ns
+      cpucluster: m33
