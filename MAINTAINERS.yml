@@ -1280,7 +1280,8 @@ Documentation:
     - doc/introduction/
     - doc/project/
     - doc/releases/
-    - README.rst
+    - README.md
+    - README.zephyr.rst
     - doc/substitutions.txt
     - doc/images/Zephyr-Kite-in-tree.png
     - doc/index-tex.rst

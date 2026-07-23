@@ -186,7 +186,7 @@ Zephyr offers a large and ever growing number of features including:
   for various subsystems and networking.
 
 
-.. include:: ../../README.rst
+.. include:: ../../README.zephyr.rst
    :start-after: start_include_here
 
 
