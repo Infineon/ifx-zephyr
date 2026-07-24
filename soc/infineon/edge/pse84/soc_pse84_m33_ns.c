@@ -263,6 +263,10 @@ void soc_early_init_hook(void)
 #ifdef CONFIG_MBOX_INFINEON
 	Cy_IPC_Pipe_Config(systemIpcPipeEpArray);
 #endif
+
+	/* Initialize the SCB1 peripheral group slave clock. */
+	Cy_SysClk_PeriGroupSlaveInit(CY_MMIO_SCB1_PERI_NR, CY_MMIO_SCB1_GROUP_NR,
+				CY_MMIO_SCB1_SLAVE_NR, CY_MMIO_SCB1_CLK_HF_NR);
 }
 
 void soc_late_init_hook(void)
