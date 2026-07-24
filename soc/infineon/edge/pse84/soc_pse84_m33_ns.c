@@ -254,6 +254,10 @@ void soc_early_init_hook(void)
 #if defined(CONFIG_PSOC_EDGE_M55_SRF_SUPPORT)
 	pse84_srf_ipc_init();
 #endif
+
+	/* Initialize the SCB1 peripheral group slave clock. */
+	Cy_SysClk_PeriGroupSlaveInit(CY_MMIO_SCB1_PERI_NR, CY_MMIO_SCB1_GROUP_NR,
+				CY_MMIO_SCB1_SLAVE_NR, CY_MMIO_SCB1_CLK_HF_NR);
 }
 
 void soc_late_init_hook(void)
