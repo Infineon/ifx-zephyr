@@ -7,14 +7,6 @@
 
 #define DT_DRV_COMPAT     infineon_qspi_flash
 
-#if defined(CONFIG_DT_HAS_FIXED_PARTITIONS_ENABLED)
-#define SOC_NV_FLASH_NODE DT_PARENT(DT_INST(0, fixed_partitions))
-#else
-#define SOC_NV_FLASH_NODE DT_MEM_FROM_MAPPED_PARTITION(DT_INST(0, zephyr_mapped_partition))
-#endif
-
-#define PAGE_LEN DT_PROP(SOC_NV_FLASH_NODE, erase_block_size)
-
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/flash.h>
@@ -24,6 +16,35 @@
 #include <infineon_kconfig.h>
 #include "mtb_serial_memory.h"
 #include "cy_device_headers.h"
+
+/* Resolve the geometry node for this SMIF controller.
+ * Use chosen zephyr,flash if its parent is this controller (app builds).
+ * Fall back to the controller's own soc-nv-flash child so MCUboot builds
+ * (where chosen is RRAM, not QSPI) get the correct flash geometry.
+ */
+#define IFX_NV_FLASH_IF_MATCH(node_id)                                                             \
+	IF_ENABLED(DT_NODE_HAS_COMPAT(node_id, soc_nv_flash), (node_id, ))
+#define IFX_NV_FLASH_TAKE_FIRST(...) IFX_NV_FLASH_TAKE_FIRST_(__VA_ARGS__)
+#define IFX_NV_FLASH_TAKE_FIRST_(first, ...) first
+#define IFX_NV_FLASH_COUNT_IF(node_id) DT_NODE_HAS_COMPAT(node_id, soc_nv_flash) +
+#define IFX_CONTROLLER_NV_FLASH_COUNT (DT_INST_FOREACH_CHILD(0, IFX_NV_FLASH_COUNT_IF) 0)
+#define IFX_CONTROLLER_NV_FLASH_NODE                                                                \
+	IFX_NV_FLASH_TAKE_FIRST(DT_INST_FOREACH_CHILD(0, IFX_NV_FLASH_IF_MATCH) _ifx_nv_none)
+
+#if DT_HAS_CHOSEN(zephyr_flash) && \
+	DT_SAME_NODE(DT_PARENT(DT_CHOSEN(zephyr_flash)), DT_DRV_INST(0))
+#define SOC_NV_FLASH_NODE DT_CHOSEN(zephyr_flash)
+#elif IFX_CONTROLLER_NV_FLASH_COUNT > 0
+#define SOC_NV_FLASH_NODE IFX_CONTROLLER_NV_FLASH_NODE
+#elif DT_NODE_EXISTS(DT_INST(0, zephyr_mapped_partition))
+#define SOC_NV_FLASH_NODE DT_MEM_FROM_MAPPED_PARTITION(DT_INST(0, zephyr_mapped_partition))
+#elif defined(CONFIG_DT_HAS_FIXED_PARTITIONS_ENABLED)
+#define SOC_NV_FLASH_NODE DT_PARENT(DT_INST(0, fixed_partitions))
+#else
+#error "infineon,qspi-flash: unable to determine flash geometry node"
+#endif
+
+#define PAGE_LEN DT_PROP(SOC_NV_FLASH_NODE, erase_block_size)
 
 #ifdef CONFIG_FLASH_INFINEON_SMIF_HW_INIT
 PINCTRL_DT_INST_DEFINE(0);
@@ -208,6 +229,15 @@ ifx_serial_memory_flash_get_parameters(const struct device *dev)
 	return &ifx_serial_memory_flash_parameters;
 }
 
+static int ifx_serial_memory_flash_get_size(const struct device *dev, uint64_t *size)
+{
+	ARG_UNUSED(dev);
+
+	*size = (uint64_t)DT_REG_SIZE(SOC_NV_FLASH_NODE);
+
+	return 0;
+}
+
 #ifdef CONFIG_PM
 cy_en_syspm_status_t
 ifx_serial_memory_flash_pm_callback(cy_stc_syspm_callback_params_t *callbackParams,
@@ -320,6 +350,7 @@ static int ifx_serial_memory_flash_init(const struct device *dev)
 	struct ifx_serial_memory_flash_data *data = dev->data;
 
 #ifdef CONFIG_FLASH_INFINEON_SMIF_HW_INIT
+	/* Destructive re-init; skip (HW_INIT=n) when already running XIP. */
 	int ret = ifx_serial_memory_hw_init();
 
 	if (ret) {
@@ -328,7 +359,7 @@ static int ifx_serial_memory_flash_init(const struct device *dev)
 	}
 #endif /* CONFIG_FLASH_INFINEON_SMIF_HW_INIT */
 
-	/* Set-up serial memory. */
+	/* Build the serial-memory object; without HW_INIT the SMIF is already live. */
 	cy_rslt_t result = mtb_serial_memory_setup(
 		&serial_memory_obj, MTB_SERIAL_MEMORY_CHIP_SELECT_1, IFX_SERIAL_MEMORY_SMIF,
 		&CYBSP_SMIF_CORE_0_XSPI_FLASH_hal_clock, &smif_mem_context, &smif_mem_info,
@@ -359,6 +390,7 @@ static DEVICE_API(flash, ifx_serial_memory_flash_driver_api) = {
 	.write = ifx_serial_memory_flash_write,
 	.erase = ifx_serial_memory_flash_erase,
 	.get_parameters = ifx_serial_memory_flash_get_parameters,
+	.get_size = ifx_serial_memory_flash_get_size,
 #ifdef CONFIG_FLASH_PAGE_LAYOUT
 	.page_layout = ifx_serial_memory_flash_page_layout,
 #endif /* CONFIG_FLASH_PAGE_LAYOUT */
