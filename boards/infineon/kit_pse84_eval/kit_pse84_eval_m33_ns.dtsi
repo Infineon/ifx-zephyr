@@ -44,3 +44,17 @@
 &mcwdt0 {
 	status = "okay";
 };
+
+/*
+ * Bind the relative MCUboot slot0_partition/slot1_partition labels
+ * (image 0 primary/secondary) to the Non-Secure slots. Kept out of
+ * kit_pse84_eval_memory_map.dtsi so the Secure build binds them to the
+ * Secure slots instead - see "Partition label schemes" in the memory map.
+ */
+&flash0 {
+	partitions {
+		slot0_partition: partition@340000 {};
+
+		slot1_partition: partition@940000 {};
+	};
+};
