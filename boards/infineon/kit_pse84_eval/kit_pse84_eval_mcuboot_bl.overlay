@@ -19,11 +19,24 @@
  *   image 0 (CM33 Secure)     : slot0/slot1 (from kit_pse84_eval_m33.dts)
  *   image 1 (CM33 Non-Secure) : slot2/slot3 (m33_xip/m33_upgrade)
  *   image 2 (CM55)            : slot4/slot5 (m55_xip/m55_upgrade)
+ *
+ * Console/log is moved to SCB1 (MiniProg4 VCOM) via the shared console
+ * overlay so SCB2 (uart2, KitProg3 VCOM) is free as the serial-recovery
+ * (mcumgr) UART selected below.
  */
+#include "kit_pse84_eval_console_scb1.dtsi"
+
 / {
 	chosen {
 		zephyr,code-partition = &boot_partition;
 		zephyr,flash = &rram0;
+		/* DFU / serial recovery over SCB2 (KitProg3). */
+		zephyr,uart-mcumgr = &uart2;
+	};
+
+	aliases {
+		/* SW_1 (P8.3) used as the serial recovery entrance button. */
+		mcuboot-button0 = &user_bt;
 	};
 };
 
