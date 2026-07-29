@@ -22,6 +22,9 @@ if(CONFIG_BUILD_WITH_TFM)
     -DIFX_MTB_IPC_LIB_PATH=${ZEPHYR_HAL_INFINEON_MODULE_DIR}/mtb-ipc
     -DIFX_DEVICE_DB_LIB_PATH=${ZEPHYR_HAL_INFINEON_MODULE_DIR}/device-db
     -DIFX_BSP_LIB_PATH=${ZEPHYR_HAL_INFINEON_MODULE_DIR}/mtb-template-pse8xxgp/files
+    # Pregenerated sources are supplied via IFX_BSP_GENERATED_FILES_OUTPUT_PATH;
+    # disable Device Configurator code generation.
+    -DIFX_GENERATE_BSP_SOURCES=OFF
   )
 
   if(CONFIG_PSOC_EDGE_M55_SRF_SUPPORT)
@@ -35,8 +38,20 @@ if(CONFIG_BUILD_WITH_TFM)
     list(APPEND TFM_CMAKE_ARGS -DIFX_BSP_GENERATED_FILES_OUTPUT_PATH=${ZEPHYR_HAL_INFINEON_MODULE_DIR}/zephyr-ifx-cycfg/pse84/kit_pse84_ai)
     set(IFX_SMIF_0_MEMORY_CONFIG "S25HS512T_SMIF0_SlaveSlot_1")
   elseif(CONFIG_BOARD_KIT_PSE84_EVAL)
-    list(APPEND TFM_CMAKE_ARGS -DIFX_BSP_GENERATED_FILES_OUTPUT_PATH=${ZEPHYR_HAL_INFINEON_MODULE_DIR}/zephyr-ifx-cycfg/pse84/kit_pse84_eval)
-    set(IFX_SMIF_0_MEMORY_CONFIG "S25FS128S_SMIF0_SlaveSlot_1")
+    if(IFX_EPC_VARIANT STREQUAL "epc2")
+      set_property(TARGET zephyr_property_target APPEND PROPERTY TFM_CMAKE_OPTIONS
+        -DIFX_BSP_GENERATED_FILES_OUTPUT_PATH=${ZEPHYR_HAL_INFINEON_MODULE_DIR}/zephyr-ifx-cycfg/pse84/kit_pse84_eval
+        -DIFX_BSP_DESIGN_DIR_PATH=${ZEPHYR_HAL_INFINEON_MODULE_DIR}/zephyr-ifx-cycfg/pse84/kit_pse84_eval
+      )
+    else()
+      set_property(TARGET zephyr_property_target APPEND PROPERTY TFM_CMAKE_OPTIONS
+        -DIFX_BSP_GENERATED_FILES_OUTPUT_PATH=${ZEPHYR_HAL_INFINEON_MODULE_DIR}/zephyr-ifx-cycfg/pse84/kit_pse84_eval_epc4
+        -DIFX_BSP_DESIGN_DIR_PATH=${ZEPHYR_HAL_INFINEON_MODULE_DIR}/zephyr-ifx-cycfg/pse84/kit_pse84_eval_epc4
+      )
+    endif()
+    set_property(TARGET zephyr_property_target APPEND PROPERTY TFM_CMAKE_OPTIONS
+      -DIFX_SMIF_0_MEMORY_CONFIG=S25FS128S_SMIF0_SlaveSlot_1
+    )
   else()
     message(FATAL_ERROR "No supported board selected.")
   endif()
