@@ -161,6 +161,7 @@ static int ifx_cat1_rtc_init(const struct device *dev)
 {
 	cy_rslt_t rslt = CY_RSLT_SUCCESS;
 
+#ifndef CONFIG_RTC_INFINEON_SKIP_SECURE_INIT
 	Cy_SysClk_ClkBakSetSource(CY_SYSCLK_BAK_IN_CLKLF);
 
 	if (_ifx_cat1_rtc_get_state() == _IFX_CAT1_RTC_STATE_UNINITIALIZED) {
@@ -185,6 +186,7 @@ static int ifx_cat1_rtc_init(const struct device *dev)
 			_ifx_cat1_rtc_century_interrupt();
 		}
 	}
+#endif
 
 	Cy_RTC_ClearInterrupt(CY_RTC_INTR_CENTURY);
 	Cy_RTC_SetInterruptMask(CY_RTC_INTR_CENTURY);
@@ -242,7 +244,7 @@ static int ifx_cat1_rtc_set_time(const struct device *dev, const struct rtc_time
 		_IFX_CAT1_RTC_WAIT_ONE_MS();
 		++retry;
 	}
-
+	
 	if (rslt == CY_RSLT_SUCCESS) {
 		_ifx_cat1_rtc_set_state(_IFX_CAT1_RTC_STATE_TIME_SET);
 		return 0;
@@ -265,7 +267,11 @@ static int ifx_cat1_rtc_get_time(const struct device *dev, struct rtc_time *time
 	k_spinlock_key_t key = k_spin_lock(&data->lock);
 
 	Cy_RTC_GetDateAndTime(&dateTime);
+#ifndef CONFIG_RTC_INFINEON_SKIP_SECURE_INIT
 	const int year = (int)(dateTime.year + _ifx_cat1_rtc_get_century());
+#else
+	const int year = (int)(dateTime.year + _IFX_CAT1_RTC_INIT_CENTURY);
+#endif
 
 	k_spin_unlock(&data->lock, key);
 
