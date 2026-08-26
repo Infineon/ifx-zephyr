@@ -40,6 +40,11 @@
 	};
 };
 
+&flash_controller
+{
+	not-pre-initialized;
+};
+
 slot2_partition: &m33_xip {};
 
 slot3_partition: &m33_upgrade {};
