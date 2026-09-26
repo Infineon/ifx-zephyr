@@ -46,3 +46,16 @@
  * Make sure the PILO clock sources in available on used device.
  */
 #define IFX_CAT1_CLKPATH_IN_PILO 0x113
+
+/* clk_lf sources (cy_en_clklf_in_sources_t) */
+#define IFX_CAT1_CLKLF_IN_PILO          0
+#define IFX_CAT1_CLKLF_IN_WCO           1
+#define IFX_CAT1_CLKLF_IN_ALTLF         2
+#define IFX_CAT1_CLKLF_IN_ECO_PRESCALER 3
+#define IFX_CAT1_CLKLF_IN_ILO           4
+
+/* clk_bak sources (cy_en_clkbak_in_sources_t) */
+#define IFX_CAT1_CLKBAK_IN_WCO   0
+#define IFX_CAT1_CLKBAK_IN_CLKLF 1
+#define IFX_CAT1_CLKBAK_IN_ILO   2
+#define IFX_CAT1_CLKBAK_IN_PILO  3
