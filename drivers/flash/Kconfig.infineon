@@ -77,6 +77,16 @@ config FLASH_INFINEON_SMIF
 	  context. Per-device Zephyr APIs are provided by separate child
 	  drivers (for example FLASH_INFINEON_SMIF_NOR).
 
+config FLASH_INFINEON_SMIF_HW_INIT
+	bool "Force SMIF controller hardware initialization"
+	depends on FLASH_INFINEON_SMIF
+	help
+	  Initialize every SMIF controller from reset, as if
+	  "not-pre-initialized" were set in devicetree. Used by images that
+	  run before the SMIF is configured, such as MCUboot in RRAM. The
+	  controller node must provide peri-nr, peri-group-nr, peri-slave-nr
+	  and clock-hf-nr.
+
 config FLASH_INFINEON_SMIF_CTRL_INIT_PRIORITY
 	int "Infineon SMIF controller init priority"
 	default 40

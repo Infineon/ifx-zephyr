@@ -513,10 +513,13 @@ static int ifx_smif_controller_init(const struct device *dev)
 
 #define IFX_SMIF_CHILD_MEM_PTR(child) &child##_mem_cfg,
 
+#define IFX_SMIF_INST_HW_INIT(n)                                                      \
+	(DT_INST_PROP(n, not_pre_initialized) || IS_ENABLED(CONFIG_FLASH_INFINEON_SMIF_HW_INIT))
+
 #define IFX_SMIF_CONTROLLER_INST(n)                                                   \
 	PINCTRL_DT_INST_DEFINE(n);                                                        \
                                                                                       \
-	BUILD_ASSERT(!DT_INST_PROP(n, not_pre_initialized) ||                             \
+	BUILD_ASSERT(!IFX_SMIF_INST_HW_INIT(n) ||                                         \
 			     (DT_INST_NODE_HAS_PROP(n, peri_nr) &&                       \
 			      DT_INST_NODE_HAS_PROP(n, peri_group_nr) &&                 \
 			      DT_INST_NODE_HAS_PROP(n, peri_slave_nr) &&                 \
@@ -542,7 +545,7 @@ static int ifx_smif_controller_init(const struct device *dev)
 		.base = (SMIF_Type *)IFX_SMIF_INST_BASE(n),                                     \
 		.block_config = &ifx_smif_block_##n,                                            \
 		.pcfg = PINCTRL_DT_INST_DEV_CONFIG_GET(n),                                      \
-		.hw_init = DT_INST_PROP(n, not_pre_initialized),                                   \
+		.hw_init = IFX_SMIF_INST_HW_INIT(n),                                            \
 		.input_freq_mhz = DT_INST_PROP(n, input_frequency_mhz),                \
 		.deselect_delay = DT_INST_PROP(n, deselect_delay),                     \
 		.clk_peri_nr = DT_INST_PROP_OR(n, peri_nr, 0),                                  \

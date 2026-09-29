@@ -135,6 +135,10 @@
 			     &p1_2_smif0_data2 &p1_3_smif0_data3
 			     &p2_0_smif0_select1 &p5_0_smif0_select0>;
 		pinctrl-names = "default";
+		peri-nr = <1>;
+		peri-group-nr = <1>;
+		peri-slave-nr = <2>;
+		clock-hf-nr = <1>;
 		status = "okay";
 
 		/* External NOR flash device on SMIF0 chip-select 1
