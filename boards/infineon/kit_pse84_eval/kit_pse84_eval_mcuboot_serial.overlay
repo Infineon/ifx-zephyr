@@ -1,0 +1,24 @@
+/*
+ * Copyright (c) 2026 Infineon Technologies AG,
+ * or an affiliate of Infineon Technologies AG.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * MCUboot serial recovery for kit_pse84_eval, applied on top of the MCUboot
+ * board overlay. Console/log moves to SCB1 (MiniProg4 VCOM) so SCB2 (uart2,
+ * KitProg3 VCOM) is free for the mcumgr transport.
+ */
+#include "kit_pse84_eval_console_scb1.dtsi"
+
+/ {
+	chosen {
+		zephyr,uart-mcumgr = &uart2;
+	};
+
+	aliases {
+		/* SW_1 (P8.3) is the serial recovery entrance button. */
+		mcuboot-button0 = &user_bt;
+	};
+};
